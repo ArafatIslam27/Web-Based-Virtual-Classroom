@@ -1,0 +1,31 @@
+body {
+  background-image: url('../Images/sample4.png');
+  background-position: center;
+  background-size: cover;
+}
+
+.form_class {
+  width: 800px;
+  background-color: rgba(0, 0, 0, 0.6);
+  margin: auto;
+  color: #FFFFFF;
+  padding: 10px 0 10px 0;
+  text-align: center;
+  border-radius: 15px 15px 0 0;
+}
+
+.main {
+  background-color: rgba(0, 0, 0, 0.5);
+  margin: auto;
+  width: 800px;
+}
+
+form {
+  padding: 10px;
+  color: white;
+}
+
+#other {
+  position: absolute;
+  left: 15px;
+}

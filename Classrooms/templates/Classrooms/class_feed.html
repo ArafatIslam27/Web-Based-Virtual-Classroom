@@ -1,0 +1,449 @@
+{% extends 'Classrooms/header.html' %}
+
+{% block content %}
+
+{% load static %}
+
+<!-- <link rel="stylesheet" href="{% static 'css/header.css' %}"> -->
+<script src="{% static 'js/home.js' %}" defer></script>
+<section class="page-title-section overlay" data-background="{% static 'images/backgrounds/page-title.jpg' %}">
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-8">
+        <ul class="list-inline custom-breadcrumb mb-2">
+          <li class="list-inline-item"><a class="h2 text-primary font-secondary" href="/Classrooms">Home</a></li>
+          <li class="list-inline-item text-white h3 font-secondary nasted">Class Feed</li>
+        </ul>
+        <p class="text-lighten mb-0">Our courses offer a good compromise between the continuous assessment favoured by some universities and the emphasis placed on final exams by others.</p>
+        <button class="btn btn-primary" onclick="gotoChat()">View Group Chat</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+{% if request.user.profile.user_type == 'T' %}
+  <form method='POST' action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    <label for="content" id="form-header">Create a post</label><br>
+    <!--<input type="text" name="announcement" placeholder="Post an announcement">-->
+    <textarea name="content" rows="8" cols="105" required></textarea><br>
+    <label for="docs">Upload Files (optional)</label>
+    <input type="file" name="docs" multiple>
+    <button type="submit" name="button" id="sub-btn">Submit</button>
+  </form>
+{% endif %}
+
+<div class="filter-function">
+
+  <span class="show-filters" onclick="showFilters()">Select Filter</span>
+
+  <div class="filters" style="width: 90px;" onclick="showFilters()">
+    <!-- <a href='#week-1'>1 week ago</a>
+    <a href='#week-2'>2 week ago</a>
+    <a href='#week-3'>3 week ago</a>
+    <a href='#week-4'>4 week ago</a> -->
+  </div>
+  </div>
+
+<!-- <div class="post">
+  <div class="post__top">
+
+
+    <img src="{% static 'Images/more-opt.jpg' %}" onclick="showOption()">
+    <div id="dropdown-num-0" class="dropdown">
+      <span onclick="deletePost()">Delete</span>
+    </div>
+    <div class="post__topInfo">
+      <h3>Username</h3>
+      <p>Timestamp...</p>
+    </div>
+  </div>
+
+  <div class="post__bottom">
+    <p>Message</p>
+  </div>
+
+</div> -->
+<div id="postsContainer"></div>
+</div>
+</section>
+<style media="screen">
+  .filter-function {
+    width: 800px;
+    height: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15px;
+    border-radius: 15px;
+    justify-content: right;
+    background-color: #d8d8d8;
+  }
+
+  .filter-function > span {
+    position: absolute;
+    cursor: pointer;
+    margin-top: 7px;
+    right: 300px;
+    padding: 5px;
+    border-radius: 10px;
+    background-color: #c4c4c4;
+  }
+
+  .filter-function > div {
+    display: none;
+    position: absolute;
+    background-color: #e9e8e9;
+    box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.2);
+    cursor: pointer;
+    text-decoration: none;
+    width: 85px;
+    margin-top: 40px;
+    z-index: 100;
+    right: 300px;
+  }
+
+  .filter-function > div > a {
+    text-decoration: none;
+    padding-bottom: 7px;
+  }
+
+  .filter-function > div > a:hover {
+    background-color: #ddd;
+  }
+
+  .filter-function > span:hover {
+    background-color: #bdbdbd;
+  }
+
+  .show {
+    display: block;
+  }
+
+  .post {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15px;
+    border-radius: 15px;
+    background: white;
+    box-shadow: 0px 5px 7px -7px rgba(0, 0, 0, 0.75);
+  }
+
+  .post__top {
+    display: flex;
+    position: relative;
+    align-items: center;
+    padding: 15px;
+  }
+
+  .post__top > img {
+    position: absolute;
+    cursor: pointer;
+    width: 25px;
+    top: 20px;
+    right: 30px;
+  }
+
+  .dropdown {
+    display: none;
+    position: absolute;
+    background-color: #e9e8e9;
+    box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.2);
+    cursor: pointer;
+    width: 50px;
+    top: 40px;
+    right: 0px;
+  }
+
+  .dropdown:hover, .dropdown:focus {
+    background-color: #ddd;
+  }
+
+  .post__topInfo > h3 {
+    font-size: medium;
+  }
+
+  .post__topInfo > p {
+    font-size: small;
+    color: gray;
+  }
+
+  .post__bottom {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 15px 25px;
+  }
+
+  form {
+    width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 15px;
+  }
+
+  .group-chat-page {
+    position: absolute;
+    right: 10px;
+    top: 60px;
+  }
+
+  body {
+    background-color: #ebebeb;
+  }
+
+  #sub-btn {
+    margin-left: 325px;
+  }
+
+  #form-header {
+    font-weight: bold;
+    font-size: large;
+  }
+
+</style>
+
+<script>
+  var class_name = {{ class_name }}
+  var user_type = {{ user_type }}
+  var posts = []
+  var docs = []
+  var curwk = 0;
+
+  let file_url = 'http://127.0.0.1:8000/api/document-list'
+  let post_url = 'http://127.0.0.1:8000/api/' + class_name + '/announcement-list'
+
+  async function get_data() {
+    await fetch(file_url)
+    .then((resp) => resp.json())
+    .then(function(data){
+      var list = data
+      for (var i in list) {
+        docs.push(list[i])
+      }
+    })
+
+    await fetch(post_url)
+    .then((resp) => resp.json())
+    .then(function(data){
+      var list = data
+      for (var i in list) {
+        console.log(list[i])
+        posts.push(list[i])
+      }
+    })
+
+    return 'success'
+  }
+
+  function timeformat(temp) {
+    var t = new Date().getTime() - new Date(temp);
+    if(t>=60000){
+      t_min = t/60000;
+      if(t_min>=60){
+        t_hour = t_min/60;
+        if(t_hour>=24){
+          t_day = t_hour/24;
+          var res = Math.round(t_day)+' d ago';
+          return res;
+        }
+        var res = Math.round(t_hour)+' hr ago';
+        return res;
+      }
+      var res = Math.round(t_min)+' min ago';
+      return res;
+    }
+    return 'Just now';
+  }
+
+  function weekfilter(temp) {
+    var t = new Date().getTime() - new Date(temp);
+    if(t>=60000){
+      t_min = t/60000;
+      if(t_min>=60){
+        t_hour = t_min/60;
+        if(t_hour>=24){
+          t_day = t_hour/24;
+          var res = Math.round(t_day);
+          return parseInt(res/7);
+        }
+      }
+    }
+    return 0;
+  }
+
+  function getCookie(name) {
+		var cookieValue = null;
+		if (document.cookie && document.cookie !== '') {
+		  var cookies = document.cookie.split(';');
+		  for (var i = 0; i < cookies.length; i++) {
+		    var cookie = cookies[i].trim();
+		    // Does this cookie string begin with the name we want?
+		    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		      break;
+		    }
+		  }
+		}
+		return cookieValue;
+  }
+	var csrftoken = getCookie('csrftoken');
+
+  function createPost(curPost, fileList, author) {
+    var anchorTag = document.createElement('div');
+    var divTag = document.createElement('div');
+    var div1Tag = document.createElement('div');
+    var div2Tag = document.createElement('div');
+    var div3Tag = document.createElement('div');
+
+    divTag.className = 'post';
+    div1Tag.className = 'post__top';
+    div2Tag.className = 'post__topInfo';
+    div3Tag.className = 'post__bottom';
+
+    divTag.id = `post-num-${curPost.id}`;
+
+    var p1Tag = document.createElement('p');
+    var p2Tag = document.createElement('p');
+    var brTag = document.createElement('br');
+    var h3Tag = document.createElement('h3');
+    var s
+
+    h3Tag.textContent = author;
+    p1Tag.textContent = timeformat(curPost.timestamp);
+    anchorTag.id = "week-"+ weekfilter(curPost.timestamp);
+    if (weekfilter(curPost.timestamp) > curwk) {
+      curwk = weekfilter(curPost.timestamp);
+      var filters = document.getElementsByClassName('filters')[0];
+      var afTag = document.createElement('a');
+      afTag.href = `#week-${curwk}`;
+      afTag.textContent = `${curwk} week ago \n`;
+      filters.appendChild(afTag);
+    }
+    div2Tag.appendChild(h3Tag);
+    div2Tag.appendChild(p1Tag);
+
+    p2Tag.textContent = curPost.content;
+    div3Tag.appendChild(p2Tag);
+
+    if (user_type == 'T') {
+      var imgTag = document.createElement('img');
+      imgTag.src = "{% static 'Images/more-opt.jpg' %}";
+      var div4Tag = document.createElement('div');
+      div4Tag.id = `dropdown-num-${curPost.id}`;
+      div4Tag.className = 'dropdown';
+      var spanTag = document.createElement('span');
+      spanTag.textContent = 'Delete';
+      imgTag.addEventListener('click', function(){ ToggleOption(div4Tag.id); })
+        //var id_name = `dropdown-num-${curPost.id}`;
+
+        //document.getElementById(`dropdown-num-${curPost.id}`).style.display = 'block';
+        // if (dispState.style.display === 'none'){
+        //   document.getElementById(`dropdown-num-${curPost.id}`).style.display = 'block';
+        // } else {
+        //   document.getElementById(`dropdown-num-${curPost.id}`).style.display = 'none';
+        // }
+      //})
+      spanTag.addEventListener('click', function(){
+        let del_req = 'http://127.0.0.1:8000/api/announcement-delete/' + curPost.id;
+        fetch(del_req, {
+          method: 'DELETE',
+          headers:{
+            'Content-type':'application/json',
+            'X-CSRFToken':csrftoken,
+          }
+        })
+        .then((resp) => resp.json())
+        .then(function(data){
+          window.location.replace('http://127.0.0.1:8000/Classrooms/' + {{roomName}} + '/class_feed');
+        })
+      })
+
+      div4Tag.appendChild(spanTag);
+      div1Tag.appendChild(imgTag);
+      div1Tag.appendChild(div4Tag);
+    }
+
+    if (fileList.length) {
+      var olTag = document.createElement('ol');
+      for (let i=0; i<fileList.length; i++) {
+        var liTag = document.createElement('li');
+        var aTag = document.createElement('a');
+        // aTag.href = URL.createObjectURL(fileList[i].doc);
+        // aTag.href = fileList[i].doc.url;
+        aTag.href = 'http://127.0.0.1:8000' + fileList[i].doc;
+        aTag.target = '_blank';
+        aTag.textContent = fileList[i].name;
+        liTag.appendChild(aTag);
+        olTag.appendChild(liTag);
+      }
+      div3Tag.appendChild(brTag);
+      div3Tag.appendChild(olTag);
+    }
+
+    div1Tag.appendChild(div2Tag);
+    divTag.appendChild(div1Tag);
+    divTag.appendChild(div3Tag);
+    anchorTag.appendChild(divTag);
+    var postsTag = document.getElementById("postsContainer");
+    postsTag.appendChild(anchorTag);
+  }
+
+  if(posts.length) {console.log('test1')}
+  var len = posts.length
+
+  async function createAllPost() {
+    var value = await get_data()
+    console.log(value)
+    if (posts.length) {
+      var author = posts[0].author;
+      console.log('test2')
+      for (let i=0; i<posts.length; i++) {
+        var curPost = posts[i];
+        var fileList = [];
+        for (let j=0; j<docs.length; j++){
+          if (docs[j].rel_post.timestamp === curPost.timestamp) {
+            console.log(i)
+            fileList.push(docs[j]);
+          }
+        }
+        createPost(curPost, fileList, author);
+      }
+    }
+    else {
+      var hTag = document.createElement('h1');
+      hTag.textContent = 'No posts available';
+    }
+  }
+  createAllPost()
+  console.log('test3')
+
+  let gotoChat = async() => {
+    let chat_url = 'http://127.0.0.1:8000/Classrooms/' + {{roomName}} + '/group_chat';
+    window.location.replace(chat_url);
+  }
+
+  function ToggleOption(id_name) {
+    var x = document.getElementById(id_name);
+    if (x.style.display === 'none'){
+      x.style.display = 'block';
+    } else {
+      x.style.display = 'none';
+    }
+  }
+
+  function showFilters() {
+    var x = document.getElementsByClassName('filters')[0];
+    if (x.style.display === 'none'){
+      x.style.display = 'block';
+    } else {
+      x.style.display = 'none';
+    }
+  }
+
+</script>
+
+{% endblock %}

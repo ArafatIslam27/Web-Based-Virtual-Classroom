@@ -1,0 +1,64 @@
+{% extends "Classrooms/header.html" %}
+
+{% block content %}
+
+{% load static %}
+
+<!-- <link rel="stylesheet" href="{% static 'css/form_design.css' %}">
+
+  <br><br>
+  <div><h1 class="form_class">Registration Form</h1></div>
+  <div class="main">
+    <form method="post">
+      {% csrf_token %}
+      {{profile_form.as_p}}
+      {{user_form.as_p}}
+      <label for="contact">Contact Number: </label>
+      <input type="text" name="contact" id="contact"><br><br>
+      <label for="address">Address: </label>
+      <input type="text" name="address" id="address"><br><br>
+      <button type="submit">Sign Up</button>
+    </form>
+  </div>
+
+  <div id="other">If you already have an account, <a href="/login">login</a> instead.</div> -->
+
+  <section class="page-title-section overlay" data-background="{% static 'images/backgrounds/page-title.jpg' %}">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-8">
+          <ul class="list-inline custom-breadcrumb mb-2">
+            <li class="list-inline-item"><a class="h2 text-primary font-secondary" href="/Classrooms">Home</a></li>
+            <li class="list-inline-item text-white h3 font-secondary nasted">Registration</li>
+          </ul>
+          <p class="text-lighten mb-0">Our courses offer a good compromise between the continuous assessment favoured by some universities and the emphasis placed on final exams by others.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- /page title -->
+  <!-- <link rel="stylesheet" href="{% static 'css/form_design.css' %}"> -->
+  <section class="section bg-gray">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12">
+          <h2 class="section-title">Registration Form</h2>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-7 mb-4 mb-lg-0">
+          <form method="post">
+            {% csrf_token %}
+            {{profile_form.as_p}}
+            {{user_form.as_p}}
+            <button type="submit" class="btn btn-primary">Sign Up</button>
+          </form>
+        </div>
+        <div class="col-lg-5">
+          <p class="mb-5">If you already have an account, <a href="/registration/login">login</a> instead.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+{% endblock %}

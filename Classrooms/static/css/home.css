@@ -1,0 +1,15 @@
+.visuals {
+  height: 140vh;
+  margin-top: -15px;
+  outline: 1px solid black;
+  background-image: url('../Images/sample4.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.visuals-float {
+  padding: 50px 0px 0px 10px;
+  color: white;
+  font-size: 20px;
+  position: absolute;
+}

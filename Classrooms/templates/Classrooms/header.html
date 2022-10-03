@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% load static %}
+    <!-- <link rel="stylesheet" href="{% static 'css/header.css' %}"> -->
+    <link rel="stylesheet" href="{% static 'plugins/bootstrap/bootstrap.min.css' %}">
+  <!-- slick slider -->
+  <link rel="stylesheet" href="{% static 'plugins/slick/slick.css' %}">
+  <!-- themefy-icon -->
+  <link rel="stylesheet" href="{% static 'plugins/themify-icons/themify-icons.css' %}">
+  <!-- animation css -->
+  <link rel="stylesheet" href="{% static 'plugins/animate/animate.css' %}">
+  <!-- aos -->
+  <link rel="stylesheet" href="{% static 'plugins/aos/aos.css' %}">
+  <!-- venobox popup -->
+  <link rel="stylesheet" href="{% static 'plugins/venobox/venobox.css' %}">
+
+  <!-- Main Stylesheet -->
+  <link href="{% static 'css/style.css' %}" rel="stylesheet">
+
+  <!-- <link rel="stylesheet" href="{% static 'css/form_design.css' %}"> -->
+  <!--Favicon-->
+  <link rel="shortcut icon" href="{% static 'images/favicon.png' %}" type="image/x-icon">
+  <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/x-icon">
+
+    <!-- <script src="{% static 'js/home.js' %}" defer></script> -->
+  </head>
+  <body>
+
+    {% include 'Classrooms/navbar.html' %}
+    {% include 'Classrooms/messaging.html' %}
+
+    {% block content %}
+    {% endblock %}
+
+
+
+  <footer>
+    <p>Creator Info</p>
+    <ul>
+      <li><strong>Email:</strong> arafatislam247@gmail.com</li>
+      <li><strong>Number:</strong> 01723838496</li>
+    </ul>
+  </footer>
+
+  <!-- jQuery -->
+  <script src="{% static 'plugins/jQuery/jquery.min.js' %}"></script>
+  <!-- Bootstrap JS -->
+  <script src="{% static 'plugins/bootstrap/bootstrap.min.js' %}"></script>
+  <!-- slick slider -->
+  <script src="{% static 'plugins/slick/slick.min.js' %}"></script>
+  <!-- aos -->
+  <script src="{% static 'plugins/aos/aos.js' %}"></script>
+  <!-- venobox popup -->
+  <script src="{% static 'plugins/venobox/venobox.min.js' %}"></script>
+  <!-- filter -->
+  <script src="{% static 'plugins/filterizr/jquery.filterizr.min.js' %}"></script>
+  <!-- google map -->
+  <!-- <script src="{% static 'https://maps.googleapis.com/maps/api/js?key=AIzaSyCcABaamniA6OL5YvYSpB3pFMNrXwXnLwU ' %}"></script> -->
+  <script src="{% static 'plugins/google-map/gmap.js' %}"></script>
+
+  <!-- Main Script -->
+  <script src="{% static 'js/script.js' %}"></script>
+  </body>
+</html>

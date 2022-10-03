@@ -1,0 +1,325 @@
+{% extends 'Classrooms/header.html' %}
+
+{% block content %}
+
+{% load static %}
+
+<!-- <link rel="stylesheet" href="{% static 'css/header.css' %}">
+<link rel="stylesheet" href="{% static 'css/room.css' %}"> -->
+<script src="{% static 'js/reconnecting-websocket.min.js' %}" defer></script>
+<script src="{% static 'js/reconnecting-websocket.js' %}"></script>
+<script src="{% static 'assets/AgoraRTC_N-4.11.0.js' %}"></script>
+<script src="{% static 'js/streams.js' %}"></script>
+<section class="page-title-section overlay" data-background="{% static 'images/backgrounds/page-title.jpg' %}">
+  <div class="container">
+
+    <div class="row">
+      <div class="col-md-8">
+        <ul class="list-inline custom-breadcrumb mb-2">
+          <li class="list-inline-item"><a class="h2 text-primary font-secondary" href="/Classrooms">Home</a></li>
+          <li class="list-inline-item text-white h3 font-secondary nasted">Group Chat</li>
+        </ul>
+        <p class="text-lighten mb-0">Our courses offer a good compromise between the continuous assessment favoured by some universities and the emphasis placed on final exams by others.</p>
+        <!-- <button class="btn btn-primary" onclick="gotoChat()">View Group Chat</button> -->
+        <button class="btn btn-primary" onclick="gotoFeed()">View Announcements</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+
+
+
+<div class="heading">
+  <div class="room-header"></div>
+  <input type="button" value="Video Call" onclick="gotoClass()">
+</div>
+
+<ul id="chat-log"></ul>
+
+<div class="form-section">
+  <input id="chat-message-input" type="text" size="100" placeholder="Type message here...">
+  <input id="chat-message-submit" type="button" value="Send">
+</div>
+</section>
+<style media="screen">
+  #chat-log{
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    width: 800px;
+    height: 500px;
+    background: #d6d6c2;
+    list-style: none;
+    margin: auto;
+    border-right: 4px solid blue;
+    border-bottom: 4px solid blue;
+    border-left: 4px solid blue;
+    overflow-y: auto;
+  }
+
+  .heading{
+    width: 800px;
+    height: 50px;
+    background: red;
+    margin: auto;
+    font-size: 30px;
+
+
+  }
+
+  .heading div{
+    width: 80%;
+    height: 100%;
+    float: left;
+    display: flex;
+    justify-content: center;
+  }
+
+  .heading input{
+    height: 100%;
+    width: 20%;
+    float: right;
+  }
+
+  .sent, .replies{
+    padding: 35px;
+    width: 100%;
+    min-height: 24px;
+    border-bottom: 20px;
+  }
+
+  .sent div{
+    position: absolute;
+    float: right;
+    padding: 5px;
+    right: 0;
+    max-width: 500px;
+    word-wrap: break-word;
+    background: blue;
+    color: white;
+    border-radius: 10px;
+  }
+
+  .sent div p{
+    top: 0;
+    padding: 7px;
+    float: left;
+    color: white;
+  }
+
+  .sent div .time_passed{
+    bottom: 0;
+    font-size: 10px;
+    padding: 0;
+    float: right;
+    color: #d6d6c2;
+  }
+
+  .sent div .user{
+    font-size: 10px;
+    padding: 0;
+    float: right;
+    color: #d6d6c2;
+  }
+
+  .replies div{
+    position: absolute;
+    float: left;
+    padding: 5px;
+    left: 0;
+    max-width: 500px;
+    height: auto;
+    word-wrap: break-word;
+    background: black;
+    color: white;
+    border-radius: 10px;
+  }
+
+  .replies div p{
+    top: 0;
+    padding: 7px;
+    float: left;
+    color: white;
+  }
+
+  .replies div .time_passed{
+    bottom: 0;
+    font-size: 10px;
+    padding: 0;
+    float: left;
+  }
+
+  .replies div .user{
+    font-size: 10px;
+    padding: 0;
+    float: left;
+  }
+
+  .form-section{
+    position: relative;
+    width: 800px;
+    margin: auto;
+    padding-top: 5px;
+  }
+
+  #chat-message-input{
+    position: absolute;
+    float: left;
+    word-wrap: break-word;
+  }
+
+  #chat-message-submit{
+    position: absolute;
+    margin: auto;
+    float: right;
+    right: 0;
+  }
+
+  .newsfeed-page{
+    position: absolute;
+    left: 10px;
+    top: 60px;
+  }
+
+  .room-header{
+    color: white;
+  }
+
+</style>
+
+<script>
+    var roomName = {{ room_name_json }};
+    var username = {{ username }};
+
+    var flcap_room_name = roomName.charAt(0).toUpperCase() + roomName.slice(1);
+    document.getElementsByClassName('room-header')[0].textContent = flcap_room_name+' Class Chat Room';
+
+    const chatSocket = new WebSocket(
+        'ws://'
+        + window.location.host
+        + '/Classrooms/'
+        + roomName
+        + '/'
+    );
+
+    chatSocket.onopen = function(e) {
+      fetchMessages();
+    }
+
+    chatSocket.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        if (data['command'] === 'messages') {
+          for (let i=0; i<data['messages'].length; i++) {
+            createMessage(data['messages'][i]);
+          }
+          // var divTag = document.createElement('div');
+
+        } else if (data['command'] === 'new_message') {
+          createMessage(data['message']);
+        }
+        // let scroll_to_bottom = document.getElementById('chat-log');
+		    // scroll_to_bottom.scrollIntoView(false);
+    };
+
+    chatSocket.onclose = function(e) {
+        console.error('Chat socket closed unexpectedly');
+    };
+
+    document.querySelector('#chat-message-input').focus();
+    document.querySelector('#chat-message-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#chat-message-submit').click();
+        }
+    };
+
+    document.querySelector('#chat-message-submit').onclick = function(e) {
+        const messageInputDom = document.querySelector('#chat-message-input');
+        const message = messageInputDom.value;
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'command': 'new_message',
+            'from': username,
+            'single_slug': roomName
+        }));
+        messageInputDom.value = '';
+    };
+
+    function fetchMessages() {
+      chatSocket.send(JSON.stringify({
+          'command': 'fetch_messages',
+          'single_slug': roomName
+      }));
+    }
+
+    function timeformat(temp) {
+      var t = new Date().getTime() - new Date(temp);
+      if(t>=60000){
+        t_min = t/60000;
+        if(t_min>=60){
+          t_hour = t_min/60;
+          if(t_hour>=24){
+            t_day = t_hour/24;
+            var res = Math.round(t_day)+' d ago';
+            return res;
+          }
+          var res = Math.round(t_hour)+' hr ago';
+          return res;
+        }
+        var res = Math.round(t_min)+' min ago';
+        return res;
+      }
+      return 'Just now';
+    }
+
+    function createMessage(data) {
+      var author = data['author'];
+      var msgListTag = document.createElement('li');
+      var divTag = document.createElement('div');
+      var pTag = document.createElement('p');
+      var sTag = document.createElement('div');
+      var nTag = document.createElement('div');
+      pTag.textContent = data.content;
+      sTag.textContent = timeformat(data.timestamp);
+      nTag.textContent = (author === username) ? 'You':author;
+      sTag.className = 'time_passed';
+      nTag.className = 'user';
+      if (author === username) {
+        msgListTag.className = 'sent';
+      } else {
+        msgListTag.className = 'replies';
+      }
+      divTag.appendChild(nTag);
+      divTag.appendChild(pTag);
+      divTag.appendChild(sTag);
+      msgListTag.appendChild(divTag);
+      document.querySelector('#chat-log').appendChild(msgListTag);
+    }
+
+    let gotoClass = async() => {
+      let vid_url = `/Classrooms/${roomName}/video_room`;
+      let token_url = `/Classrooms/${roomName}/get_token/?channelName=${roomName}`;
+
+      let response = await fetch(token_url)
+      let data = await response.json()
+
+      let UID = data.uid;
+      let token = data.token;
+
+      sessionStorage.setItem('UID', UID);
+      sessionStorage.setItem('token', token);
+      sessionStorage.setItem('room', roomName);
+      sessionStorage.setItem('username', username);
+
+      window.open(vid_url, "", "");
+    }
+
+    let gotoFeed = async() => {
+      let feed_url = 'http://127.0.0.1:8000/Classrooms/' + roomName + '/class_feed';
+      window.location.assign(feed_url);
+    }
+
+</script>
+
+{% endblock %}
